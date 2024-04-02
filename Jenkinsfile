@@ -1,5 +1,6 @@
 def label = "eosagent"
 def env = "main"
+
 podTemplate(label: label, yaml: """
 apiVersion: v1
 kind: Pod
@@ -9,7 +10,7 @@ metadata:
 spec:
   serviceAccount: jenkins-admin
   containers:
-  - name: eosagent-container
+  - name: build
     image: rajeshtalla0209/eos-jenkins-agent-base:latest
     command:
     - cat
@@ -17,12 +18,12 @@ spec:
 """
 ) {
     node (label) {
-        stage ('Checkout SCM'){
+        stage ('Checkout SCM') {
             git credentialsId: 'git', url: 'https://github.com/RKDevops1234/eos-admin-deployment.git', branch: "${env}"
         }
 
         stage ('Helm Chart') {
-            container('eosagent-container') {
+            container('build') {
                 withCredentials([usernamePassword(credentialsId: 'jfrog', usernameVariable: 'username', passwordVariable: 'password')]) {
                     sh '/usr/local/bin/helm repo add eos-helm-local  https://rkdevops12.jfrog.io/artifactory/eos-helm-local --username $username --password $password'
                     sh "/usr/local/bin/helm repo update"
